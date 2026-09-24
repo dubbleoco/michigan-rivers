@@ -1,0 +1,11 @@
+{
+  "name": "Michigan Rivers",
+  "short_name": "MI Rivers",
+  "description": "Live salmon and steelhead conditions for West and Northern Michigan rivers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#1d4ed8",
+  "orientation": "portrait-primary",
+  "icons": [{ "src": "/favicon.ico", "sizes": "any", "type": "image/x-icon" }]
+}
