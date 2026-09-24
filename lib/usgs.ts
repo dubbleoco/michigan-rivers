@@ -19,15 +19,22 @@ export async function fetchUSGS(siteIds: string[]): Promise<Record<string, Gauge
     `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${sites}` +
     `&parameterCd=${PARAM_CODES}&siteStatus=active&period=PT48H`;
 
-  const res = await fetch(url, {
-    headers: { Accept: "application/json" },
-    next: { revalidate: 900 },
-  });
-
-  if (!res.ok) throw new Error(`USGS fetch failed: ${res.status}`);
-  const raw = await res.json();
-
-  return parseUSGS(raw);
+  // Retry up to 3 times — USGS occasionally returns 503 under load
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers: { Accept: "application/json" },
+        next: { revalidate: 900 },
+      });
+      if (res.ok) return parseUSGS(await res.json());
+      if (res.status !== 503 || attempt === 3)
+        throw new Error(`USGS fetch failed: ${res.status}`);
+    } catch (e) {
+      if (attempt === 3) throw e;
+    }
+    await new Promise((r) => setTimeout(r, attempt * 1000));
+  }
+  return {};
 }
 
 function safeVal(raw: any): number | null {
